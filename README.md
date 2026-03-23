@@ -118,3 +118,24 @@
 4. Qwen3 실사용은 `prompts/qwen3_summary_prompt.md`를 사용합니다.
 5. 샘플 입력은 `examples/input_example.json`과 `examples/layer_configs_example.json`을 참고합니다.
 6. 평가 포맷은 `docs/evaluation/qwen3_vs_gpt_ab_format.md`를 사용합니다.
+
+## CSV가 깨져 보일 때
+
+- 저장소의 원본 CSV는 `UTF-8 BOM` 기준으로 다루는 것을 권장합니다.
+- PowerShell이나 후처리 과정에서 다시 저장하면 BOM이 빠지거나 기본 인코딩으로 바뀌면서 Excel에서 한글이 깨질 수 있습니다.
+- 셀 안 줄바꿈이 많은 파일은 메모장에서는 정상이어도 Excel에서 행이 어긋나 보일 수 있습니다.
+
+아래 스크립트로 Excel용 사본을 다시 만들 수 있습니다.
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\Repair-CsvForExcelWinPS.ps1 `
+  -InputCsv .\data\origin\stt_summary_20260319_000000.csv
+```
+
+탭 구분 TSV가 더 안전하면 아래처럼 실행합니다.
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\Repair-CsvForExcelWinPS.ps1 `
+  -InputCsv .\data\origin\stt_summary_20260319_000000.csv `
+  -AsTsv
+```
