@@ -9,14 +9,16 @@
 
 1. `source.source_text`는 최종 사실 근거다.
 2. `source.source_text_cleaned`는 STT 노이즈를 줄인 작업용 입력이다.
-3. `stt_preprocess`는 무엇을 제거했고 무엇이 불확실한지 설명하는 전처리 메타데이터다.
-4. `feedback_rules`, `analysis_hints`는 사실 생성용이 아니라 점검 규칙이다.
+3. `audio_preprocess`는 STT 이전에 별도 실행한 음원 전처리 메타데이터다.
+4. `stt_preprocess`는 무엇을 제거했고 무엇이 불확실한지 설명하는 전사 후 전처리 메타데이터다.
+5. `feedback_rules`, `analysis_hints`는 사실 생성용이 아니라 점검 규칙이다.
 
 ## 권장 상위 구조
 
 ```json
 {
   "source": {},
+  "audio_preprocess": {},
   "stt_preprocess": {},
   "task_config": {},
   "feedback_rules": {},
@@ -53,7 +55,51 @@
 2. 추출 결과가 중요한 판단에 연결될 때는 `source_text`로 다시 확인한다.
 3. 정제본에만 있고 원문 근거가 불명확한 내용은 제외한다.
 
-## 2. `stt_preprocess`
+## 2. `audio_preprocess`
+
+음원 전처리를 요약과 분리된 STT 사전 단계로 운영하기 위한 메타데이터다.
+
+```json
+{
+  "run_mode": "separate_pre_stt",
+  "status": "planned",
+  "pipeline": [
+    "noise_reduction",
+    "volume_normalization",
+    "vad",
+    "speaker_diarization",
+    "overlap_handling",
+    "segment_split",
+    "format_normalization_16khz_mono"
+  ],
+  "priority_steps": [
+    "noise_reduction",
+    "vad",
+    "speaker_diarization"
+  ],
+  "target_format": "16kHz mono",
+  "notes": [
+    "음원 전처리는 STT 이전 별도 프로세스로 운영"
+  ]
+}
+```
+
+역할:
+
+- `run_mode`: 요약과 분리된 운영 방식 명시
+- `status`: 적용 완료 여부 또는 계획 상태
+- `pipeline`: 음원 전처리 단계 목록
+- `priority_steps`: 우선 적용 단계
+- `target_format`: 표준 입력 포맷
+- `notes`: 운영 메모
+
+운영 규칙:
+
+1. `audio_preprocess`는 상담 사실 근거가 아니다.
+2. 이 블록은 음원 품질과 STT 신뢰도 해석용 참고 정보로만 사용한다.
+3. 실제 요약 사실 추출은 여전히 `source`와 `stt_preprocess`를 기준으로 한다.
+
+## 3. `stt_preprocess`
 
 정제 과정에서 제거하거나 보류한 내용을 구조화한다.
 
@@ -81,7 +127,7 @@
 }
 ```
 
-## 3. `task_config`
+## 4. `task_config`
 
 이번 실행의 목표와 출력 형식을 담는다.
 
@@ -103,7 +149,7 @@
 }
 ```
 
-## 4. `feedback_rules`
+## 5. `feedback_rules`
 
 현업 피드백에서 검증된 운영 규칙을 담는다.
 
@@ -123,7 +169,7 @@
 }
 ```
 
-## 5. `analysis_hints`
+## 6. `analysis_hints`
 
 이전 평가에서 확인된 취약점을 담는다.
 
@@ -144,7 +190,8 @@
 ## 권장 운영 규칙
 
 1. `source.source_text`는 항상 유지한다.
-2. 노이즈가 심한 STT는 `source.source_text_cleaned`와 `stt_preprocess`를 함께 넣는다.
-3. 정제 단계에서는 삭제보다 `불확실 표시`를 우선한다.
-4. 요약 모델은 정제본을 우선 읽되, 상태/주체/수치 판단은 원문으로 재확인한다.
-5. 원문과 정제본이 충돌하면 원문을 우선하고, 원문도 불명확하면 제외한다.
+2. 음원 품질 개선은 `audio_preprocess`에서 요약과 분리된 별도 단계로 운영한다.
+3. 노이즈가 심한 STT는 `source.source_text_cleaned`와 `stt_preprocess`를 함께 넣는다.
+4. 정제 단계에서는 삭제보다 `불확실 표시`를 우선한다.
+5. 요약 모델은 정제본을 우선 읽되, 상태/주체/수치 판단은 원문으로 재확인한다.
+6. 원문과 정제본이 충돌하면 원문을 우선하고, 원문도 불명확하면 제외한다.

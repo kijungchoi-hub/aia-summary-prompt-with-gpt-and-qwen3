@@ -2,7 +2,33 @@
   "source": {
     "source_text": "고객은 보험금 청구 결과가 아직 확인되지 않았다고 말하며 본인 계약인지 배우자 계약인지 헷갈린다고 했다. 서류는 접수됐다고 들었고, 이전 상담에서 받은 안내가 불명확했다고 불만을 말했다.",
     "source_text_cleaned": "고객은 보험금 청구 결과 확인 요청. 본인 계약인지 배우자 계약인지 혼선이 있음. 서류 접수 안내를 받았으나 이전 안내가 불명확해 불만 제기.",
-    "consult_type": "보험금청구"
+    "consult_type": "보험금청구",
+    "speaker_map": {
+      "A": "고객",
+      "B": "상담사"
+    }
+  },
+  "audio_preprocess": {
+    "run_mode": "separate_pre_stt",
+    "status": "planned",
+    "pipeline": [
+      "noise_reduction",
+      "volume_normalization",
+      "vad",
+      "speaker_diarization",
+      "overlap_handling",
+      "segment_split",
+      "format_normalization_16khz_mono"
+    ],
+    "priority_steps": [
+      "noise_reduction",
+      "vad",
+      "speaker_diarization"
+    ],
+    "target_format": "16kHz mono",
+    "notes": [
+      "음원 전처리는 요약 프로세스와 분리된 STT 사전 단계로 운영"
+    ]
   },
   "stt_preprocess": {
     "cleanup_applied": [
@@ -19,6 +45,20 @@
       "보험금 청구 결과 확인 요청",
       "계약 대상 혼선",
       "이전 안내 불명확에 대한 불만"
+    ]
+  },
+  "task_config": {
+    "summary_goal": "고객 관점 핵심 요약",
+    "summary_strategy": "speaker_staged",
+    "required_sections": [
+      "고객 요청 사항",
+      "계약/대상 관계",
+      "핵심 상황",
+      "민원/불만",
+      "처리 상태",
+      "상담사 후속조치",
+      "기한/긴급성",
+      "특이사항"
     ]
   },
   "analysis_hints": {
